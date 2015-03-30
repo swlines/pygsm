@@ -916,7 +916,7 @@ class GsmModem(object):
     }
 
     @property
-    def network(self):
+    def network(self, operator_format=None):
         """
         Return the name of the currently selected GSM network.
         """
@@ -938,6 +938,9 @@ class GsmModem(object):
         #
         # and <oper> is the operator identifier in the format
         # specified by <format>
+
+        if operator_format and str(operator_format) in ['0', '1']:
+            self.command("AT+COPS=3,%s".format(operator_format))
 
         data = self.query("AT+COPS?", "+COPS:")
         if data is not None:
@@ -1020,7 +1023,7 @@ class GsmModem(object):
 
             else:
                 return 5
-                
+
         else:
             return None
 

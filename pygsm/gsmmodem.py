@@ -995,6 +995,34 @@ class GsmModem(object):
         # check the type without raising an exception
         return None
 
+    def signal_strength_bars(self):
+        """
+        Returns the number of bars to be indicated (between 0 and 5) based
+        on the existing signal strength
+        """
+
+        strength = self.signal_strength()
+        if strength and not (strength >= 0 and strength <= 31):
+            if strength <= 1:
+                return 0
+
+            elif strength <= 6:
+                return 1
+
+            elif strength <= 10:
+                return 2
+
+            elif strength <= 15:
+                return 3
+
+            elif strength <= 20:
+                return 4
+
+            else:
+                return 5
+                
+        else:
+            return None
 
     def wait_for_network(self):
         """

@@ -1145,6 +1145,28 @@ class GsmModem(object):
         # longest from the queue, and return it
         return self.incoming_queue.pop(0)
 
+    def battery_charge(self):
+        """
+        Returns the current battery life in a percentage form, None if 
+        there it is not being powered by battery
+        """
+
+        data = self.query("AT+CBC", "+CBC:")
+        if data is not None:
+
+            # parse the csv-style output
+            fields = self._csv_str(data)
+
+            # 0 - powered by battery, 1/2 not powered by battery (1 has batt connected)
+            # 3 power fault
+            if fields[0] in ["0", "1"]:
+                return fields[1]
+
+        
+        return None
+
+
+
 
 
 

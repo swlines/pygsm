@@ -1005,7 +1005,8 @@ class GsmModem(object):
         """
 
         strength = self.signal_strength()
-        if strength and not (strength >= 0 and strength <= 31):
+
+        if strength and (strength >= 0 and strength <= 31):
             if strength <= 1:
                 return 0
 
@@ -1161,13 +1162,8 @@ class GsmModem(object):
             # 3 power fault
             if fields[0] in ["0", "1"]:
                 return fields[1]
-
         
         return None
-
-
-
-
 
 
 if __name__ == "__main__":

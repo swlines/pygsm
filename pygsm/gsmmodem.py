@@ -939,7 +939,7 @@ class GsmModem(object):
         # specified by <format>
 
         if operator_format and str(operator_format) in ['0', '1']:
-            self.command("AT+COPS=3,%s".format(operator_format))
+            self.command("AT+COPS=3,%s" % (operator_format))
 
         data = self.query("AT+COPS?", "+COPS:")
         if data is not None:

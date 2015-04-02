@@ -915,7 +915,6 @@ class GsmModem(object):
         "3": "(Unreadable)"
     }
 
-    @property
     def network(self, operator_format=None):
         """
         Return the name of the currently selected GSM network.

@@ -323,7 +323,7 @@ class GsmModem(object):
                 return buf_str
 
 
-    def _wait(self, read_term=None, read_timeout=None):
+    def _wait(self, read_term=None, read_timeout=None, expected_buf=None):
         """
         Read (blocking) from the modem, one line at a time, until a
         response terminator ("OK", "ERROR", or "CMx ERROR...") is hit,
@@ -347,7 +347,7 @@ class GsmModem(object):
             # are some exceptions. we're not checking those
             # here (unlike RubyGSM), because they should be
             # handled when they're _expected_
-            if buf == "OK":
+            if buf == "OK" or (expected_buf and buf == expected_buf):
                 return buffer
 
             # some errors contain useful error codes, so raise a
@@ -549,7 +549,7 @@ class GsmModem(object):
         return msg
 
 
-    def command(self, cmd, read_term=None, read_timeout=None, write_term="\r", raise_errors=True):
+    def command(self, cmd, read_term=None, read_timeout=None, write_term="\r", raise_errors=True, expected=None):
         """
         Issue an AT command to the modem, and return the sanitized
         response. Sanitization removes status notifications, command
@@ -573,7 +573,8 @@ class GsmModem(object):
                     self._write(cmd + write_term)
                     lines = self._wait(
                         read_term=read_term,
-                        read_timeout=read_timeout)
+                        read_timeout=read_timeout,
+                        expected_buf=expected)
 
                 # no exception was raised, so break
                 # out of the enclosing WHILE loop

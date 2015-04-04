@@ -41,7 +41,7 @@ class DataModem(GsmModem):
 		"""
 		Disconnects from the existing CIP session
 		"""
-		self.command("AT+CIPSHUT", expected="SHUT OK", raise_errors=False)
+		self.command("AT+CIPSHUT", expected="SHUT OK", raise_errors=False, read_timeout=10)
 
 	def _attach(self):
 		"""
@@ -71,16 +71,24 @@ class DataModem(GsmModem):
 			if self._connectivity_check():
 				return True
 
+	def _reconnect_gprs(self):
+		"""
+		Disconnects the GPRS PDP context entirely and reconnects
+		"""
+		self.command('AT+CGATT=0', raise_errors=False)
+
+		try:
+			self.command('AT+CGATT=1')
+			self._attach()
+		except:
+			return False
+
 	def _connectivity_check(self):
 		self.wait_for_network()
 
 		m = self.query('AT+CGATT?', '+CGATT: ')
 		if m == '0':
-			self.command('AT+CGATT=0', raise_errors=False)
-			try:
-				self.command('AT+CGATT=1')
-			except:
-				return False
+			self._reconnect_gprs(self)
 
 		self._write('AT+CIFSR\r')
 
@@ -132,11 +140,8 @@ class DataModem(GsmModem):
 				buf = self._read(read_timeout=15).strip()
 
 			except errors.GsmReadTimeoutError:
-				self.command('AT+CGATT=0', raise_errors=False)
-				try:
-					self.command('AT+CGATT=1')
-				except:
-					return False
+				self._reconnect_gprs()
+				return self._connect_gprs(destination, port, type, reattempt=False)
 
 			# we are looking for the string CONNECT
 			if 'CONNECT' in buf:
@@ -144,13 +149,16 @@ class DataModem(GsmModem):
 				if buf == 'CONNECT OK':
 					return True
 
-				if buf == 'CONNECT FAIL' or buf == 'ALREADY CONNECT':
+				if buf == 'CONNECT FAIL':
 					if ip_status and reattempt:
-						self._disconnect()
+						self._reconnect_gprs()
 						return self._connect_gprs(destination, port, type, reattempt=False)
 
 					else:
 						return False
+
+				if buf == 'ALREADY CONNECT':
+					return False
 
 			if buf == '+PDP: DEACT':
 				return False
@@ -159,7 +167,7 @@ class DataModem(GsmModem):
 				ip_status = True	
 
 	def _close_gprs(self):
-		self.command('AT+CIPCLOSE', expected="CLOSE OK", raise_errors=False)		
+		self.command('AT+CIPSHUT', expected="SHUT OK", raise_errors=False)		
 
 
 	def send_udp(self, destination, port, text):

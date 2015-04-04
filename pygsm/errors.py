@@ -5,6 +5,8 @@
 
 import serial
 
+class InvalidData(Exception):
+    pass
 
 class GsmError(serial.SerialException):
     pass
